@@ -43,7 +43,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         name: Setup Cargo Toolchain 🛎️
       - name: Download Dependencies 🛎️
-        run: wget https://github.com/google/fonts/raw/master/ofl/encodesans/static/EncodeSans-Regular.ttf
+        run: wget https://github.com/thundernixon/Encode-Sans/blob/master/fonts/EncodeSans/static/EncodeSans-Black.ttf
       - uses: actions-rs/cargo@v1
         name: Build 🔧
         with:
