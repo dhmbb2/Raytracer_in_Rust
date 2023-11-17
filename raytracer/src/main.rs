@@ -43,7 +43,7 @@ fn render_text(image: &mut RgbImage, msg: &str) {
     let font_file = if is_ci() {
         "EncodeSans-Regular.ttf"
     } else {
-        "/System/Library/Fonts/Helvetica.ttc"
+        "/mnt/c/Windows/Fonts/ARIALNI.TTF"
     };
     let font_path = std::env::current_dir().unwrap().join(font_file);
     let data = std::fs::read(&font_path).unwrap();
