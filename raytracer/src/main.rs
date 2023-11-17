@@ -134,7 +134,7 @@ fn main() {
     let msg = get_text();
     println!("Extra Info: {}", msg);
 
-    render_text(&mut result, msg.as_str());
+    // render_text(&mut result, msg.as_str());
 
     result.save("output/test.png").unwrap();
 }
