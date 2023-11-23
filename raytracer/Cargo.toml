@@ -12,4 +12,3 @@ indicatif = "0.15"
 threadpool = "1.8"
 imageproc = "0.21"
 rusttype = "0.9"
-raytracer_codegen = { path = "../raytracer_codegen" }

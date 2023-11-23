@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, Neg};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
@@ -27,7 +27,7 @@ impl Vec3 {
         return self.x * self.x + self.y * self.y + self.z * self.z;
     }
 
-    pub fn length(&self) -> f64 {   
+    pub fn length(&self) -> f64 {
         return self.squared_length().sqrt();
     }
 
@@ -126,7 +126,7 @@ impl Sub for Vec3 {
 
 impl Sub<f64> for Vec3 {
     type Output = Self;
-    
+
     fn sub(self, other: f64) -> Self {
         Self {
             x: self.x - other,
@@ -171,7 +171,7 @@ impl Mul for Vec3 {
 
 impl Mul<f64> for Vec3 {
     type Output = Self;
-    
+
     fn mul(self, other: f64) -> Self {
         Self {
             x: self.x * other,
@@ -204,7 +204,7 @@ impl MulAssign<f64> for Vec3 {
 // operator /
 impl Div<f64> for Vec3 {
     type Output = Self;
-    
+
     fn div(self, other: f64) -> Self {
         Self {
             x: self.x / other,

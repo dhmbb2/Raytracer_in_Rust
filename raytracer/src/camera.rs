@@ -1,5 +1,5 @@
-use crate::vec3::{Point3, Vec3, Color};
 use crate::ray::Ray;
+use crate::vec3::{Color, Point3, Vec3};
 
 use std::default::Default;
 
@@ -31,7 +31,7 @@ impl Camera {
         aspect_ratio: f64,
         image_width: u64,
         viewport_width: f64,
-        u: Vec3
+        u: Vec3,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u64;
         let viewport_height = viewport_width / image_width as f64 * image_height as f64;
@@ -41,13 +41,14 @@ impl Camera {
         let v_unit = Vec3::cross(&direction, &u_unit).unit();
 
         let left_corner: Point3 = center + direction.unit() * focal_length
-                          - u_unit * (0.5 * viewport_width) - v_unit * (0.5 * viewport_height);
+            - u_unit * (0.5 * viewport_width)
+            - v_unit * (0.5 * viewport_height);
         let pixel0_loc = left_corner + u_unit * 0.5 * pixel_length + v_unit * 0.5 * pixel_length;
 
         let du = u_unit * pixel_length;
         let dv = v_unit * pixel_length;
 
-        return Self{
+        return Self {
             center,
             direction,
             focal_length,
@@ -60,7 +61,7 @@ impl Camera {
             pixel_length,
             pixel0_loc,
             du,
-            dv, 
+            dv,
         };
     }
 
@@ -69,21 +70,25 @@ impl Camera {
         return Ray::new(self.center, ray_direction);
     }
 
-    pub fn get_color(ray: Ray) -> Color{
+    pub fn get_color(ray: Ray) -> Color {
         let unit_direction: Vec3 = ray.dir.unit();
         let a = 0.5 * (unit_direction.y + 1.0);
-        return Color::new(1.0, 1.0, 1.0) * (1.0-a) + Color::new(0.5, 0.7, 1.0) * a;
+        return Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a;
     }
 
     pub fn render(&self) {
-        let mut pixel = Point3::new(0.0,0.0,0.0);
-        let mut dir = Vec3::new(0.0,0.0,0.0);
+        let mut _pixel = Point3::new(0.0, 0.0, 0.0);
         for j in 0..self.image_height {
             for i in 0..self.image_width {
-                pixel = self.pixel0_loc + self.du * i as f64 + self.dv * j as f64;
-                let ray = self.cast_ray(pixel);
+                _pixel = self.pixel0_loc + self.du * i as f64 + self.dv * j as f64;
+                let ray = self.cast_ray(_pixel);
                 let color: Color = Self::get_color(ray);
-                println!("{} {} {}", (color.x * 255.999) as u64, (color.y * 255.999) as u64, (color.z * 255.999) as u64);
+                println!(
+                    "{} {} {}",
+                    (color.x * 255.999) as u64,
+                    (color.y * 255.999) as u64,
+                    (color.z * 255.999) as u64
+                );
             }
         }
     }
@@ -97,14 +102,16 @@ impl Default for Camera {
         let aspect_ratio = 16.0 / 9.0;
         let image_width = 400;
         let viewport_width = 2.0;
-        let u = Vec3::new(0.0,1.0,0.0);
+        let u = Vec3::new(0.0, 1.0, 0.0);
 
-        return Self::new(center,
-                        direction,
-                        focal_length,
-                        aspect_ratio,
-                        image_width,
-                        viewport_width,
-                        u);
+        return Self::new(
+            center,
+            direction,
+            focal_length,
+            aspect_ratio,
+            image_width,
+            viewport_width,
+            u,
+        );
     }
 }

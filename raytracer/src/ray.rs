@@ -17,4 +17,3 @@ impl Ray {
         return self.ori + self.dir * t;
     }
 }
- 
