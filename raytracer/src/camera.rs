@@ -1,11 +1,12 @@
-use crate::hittable::{self, Hittable, HitRecord};
-use crate::ray::Ray;
-use crate::vec3::{Color, Point3, Vec3};
+use image::{ImageBuffer, Rgb, RgbImage};
+use indicatif::ProgressBar;
+
+use crate::hittable::HitRecord;
+use crate::util::const_value;
+use crate::util::ray::Ray;
+use crate::util::rot::ROT;
+use crate::util::vec3::{Color, Point3, Vec3};
 use crate::world::World;
-use crate::util::ROT;
-use crate::const_value;
-
-
 
 pub struct Camera {
     // user specified parameters
@@ -13,13 +14,13 @@ pub struct Camera {
     direction: Vec3,
     focal_length: f64,
     aspect_ratio: f64,
-    image_width: u64,
+    image_width: u32,
     viewport_width: f64,
-    u: Vec3, // the u axis of the viewport, from left to right
+    u: Vec3,      // the u axis of the viewport, from left to right
     world: World, // the world of which we capture
 
     // detailed paras for the camera
-    image_height: u64,
+    image_height: u32,
     viewport_height: f64,
     pixel_length: f64,
     pixel0_loc: Point3,
@@ -33,12 +34,12 @@ impl Camera {
         direction: Vec3,
         focal_length: f64,
         aspect_ratio: f64,
-        image_width: u64,
+        image_width: u32,
         viewport_width: f64,
         u: Vec3,
         world: World,
     ) -> Self {
-        let image_height = (image_width as f64 / aspect_ratio) as u64;
+        let image_height = (image_width as f64 / aspect_ratio) as u32;
         let viewport_height = viewport_width / image_width as f64 * image_height as f64;
         let pixel_length = viewport_width / image_width as f64;
 
@@ -97,21 +98,29 @@ impl Camera {
         }
     }
 
-    pub fn render(&self) {
+    pub fn render(&self) -> RgbImage {
         let mut _pixel = Point3::new(0.0, 0.0, 0.0);
+        let mut result: RgbImage = ImageBuffer::new(self.image_width, self.image_height);
+        let bar = ProgressBar::new((self.image_height * self.image_width) as u64);
+
         for j in 0..self.image_height {
             for i in 0..self.image_width {
                 _pixel = self.pixel0_loc + self.du * i as f64 + self.dv * j as f64;
                 let ray = self.cast_ray(_pixel);
                 let color: Color = self.get_color(ray);
-                println!(
-                    "{} {} {}",
-                    (color.x * 255.999) as u64,
-                    (color.y * 255.999) as u64,
-                    (color.z * 255.999) as u64
+                result.put_pixel(
+                    i,
+                    j,
+                    Rgb([
+                        (color.x * 255.999) as u8,
+                        (color.y * 255.999) as u8,
+                        (color.z * 255.999) as u8,
+                    ]),
                 );
+                bar.inc(1);
             }
         }
+        bar.finish();
+        result
     }
 }
-
