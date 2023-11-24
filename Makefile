@@ -1,5 +1,5 @@
 run:
-	cargo run > ./test.ppm
+	cargo run > test.ppm
 
 run_release:
 	cargo run --release

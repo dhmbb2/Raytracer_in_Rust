@@ -24,11 +24,11 @@ impl Vec3 {
     }
 
     pub fn squared_length(&self) -> f64 {
-        return self.x * self.x + self.y * self.y + self.z * self.z;
+        self.x * self.x + self.y * self.y + self.z * self.z
     }
 
     pub fn length(&self) -> f64 {
-        return self.squared_length().sqrt();
+        self.squared_length().sqrt()
     }
 
     pub fn unit(&self) -> Self {
@@ -41,7 +41,7 @@ impl Vec3 {
     }
 
     pub fn dot(v1: &Self, v2: &Self) -> f64 {
-        return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+        v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
     }
 
     pub fn cross(v1: &Self, v2: &Self) -> Self {

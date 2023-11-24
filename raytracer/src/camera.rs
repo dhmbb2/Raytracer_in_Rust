@@ -1,9 +1,12 @@
+use crate::hittable::{self, Hittable, HitRecord};
 use crate::ray::Ray;
 use crate::vec3::{Color, Point3, Vec3};
+use crate::world::World;
+use crate::util::ROT;
+use crate::const_value;
 
-use std::default::Default;
 
-#[derive(Debug)]
+
 pub struct Camera {
     // user specified parameters
     center: Point3,
@@ -13,6 +16,7 @@ pub struct Camera {
     image_width: u64,
     viewport_width: f64,
     u: Vec3, // the u axis of the viewport, from left to right
+    world: World, // the world of which we capture
 
     // detailed paras for the camera
     image_height: u64,
@@ -32,6 +36,7 @@ impl Camera {
         image_width: u64,
         viewport_width: f64,
         u: Vec3,
+        world: World,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u64;
         let viewport_height = viewport_width / image_width as f64 * image_height as f64;
@@ -48,7 +53,7 @@ impl Camera {
         let du = u_unit * pixel_length;
         let dv = v_unit * pixel_length;
 
-        return Self {
+        Self {
             center,
             direction,
             focal_length,
@@ -56,24 +61,40 @@ impl Camera {
             image_width,
             viewport_width,
             u,
+            world,
             image_height,
             viewport_height,
             pixel_length,
             pixel0_loc,
             du,
             dv,
-        };
+        }
     }
 
     pub fn cast_ray(&self, pixel_loc: Point3) -> Ray {
-        let ray_direction = pixel_loc - self.center;
+        let ray_direction = (pixel_loc - self.center).unit();
         return Ray::new(self.center, ray_direction);
     }
 
-    pub fn get_color(ray: Ray) -> Color {
-        let unit_direction: Vec3 = ray.dir.unit();
-        let a = 0.5 * (unit_direction.y + 1.0);
-        return Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a;
+    pub fn get_color(&self, ray: Ray) -> Color {
+        let a = 0.5 * (ray.dir.y + 1.0);
+        let mut _hit_record: Option<HitRecord> = None;
+
+        let mut rot = ROT::new(const_value::BACKGROUND_T, 0.0);
+        for hittable in &self.world.hittables {
+            if let Some(record) = hittable.hit(&ray, &rot) {
+                _hit_record = Some(record);
+                rot.set_tmax(record.t);
+            }
+        }
+
+        match _hit_record {
+            None => Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a,
+            Some(hit_record) => {
+                let normal: Vec3 = hit_record.normal;
+                Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0) * 0.5
+            }
+        }
     }
 
     pub fn render(&self) {
@@ -82,7 +103,7 @@ impl Camera {
             for i in 0..self.image_width {
                 _pixel = self.pixel0_loc + self.du * i as f64 + self.dv * j as f64;
                 let ray = self.cast_ray(_pixel);
-                let color: Color = Self::get_color(ray);
+                let color: Color = self.get_color(ray);
                 println!(
                     "{} {} {}",
                     (color.x * 255.999) as u64,
@@ -94,24 +115,3 @@ impl Camera {
     }
 }
 
-impl Default for Camera {
-    fn default() -> Self {
-        let center = Point3::new(-1.0, 0.0, 0.0);
-        let direction = Vec3::new(1.0, 0.0, 0.0);
-        let focal_length = 1.0;
-        let aspect_ratio = 16.0 / 9.0;
-        let image_width = 400;
-        let viewport_width = 2.0;
-        let u = Vec3::new(0.0, 1.0, 0.0);
-
-        return Self::new(
-            center,
-            direction,
-            focal_length,
-            aspect_ratio,
-            image_width,
-            viewport_width,
-            u,
-        );
-    }
-}
