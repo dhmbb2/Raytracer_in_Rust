@@ -3,26 +3,34 @@ pub mod sphere;
 use crate::util::ray::Ray;
 use crate::util::rot::ROT;
 use crate::util::vec3::{Point3, Vec3};
+use crate::material::Material;
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, rot: &ROT) -> Option<HitRecord>;
 }
 #[derive(Clone, Copy)]
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub point: Point3,
     pub t: f64,
     pub normal: Vec3, // normal vector of the hit point
     pub is_outward: bool,
+    pub material: &'a dyn Material,
 }
 
-impl HitRecord {
-    pub fn new(point: Point3, t: f64, normal: Vec3, is_outward: bool) -> Self {
+impl<'a> HitRecord<'a> {
+    pub fn new(
+        point: Point3, 
+        t: f64, normal: Vec3, 
+        is_outward: bool, 
+        material: &'a dyn Material,
+    ) -> Self {
         Self::reset_normal(normal, is_outward);
         Self {
             point,
             t,
             normal,
             is_outward,
+            material,
         }
     }
 
@@ -34,3 +42,4 @@ impl HitRecord {
         }
     }
 }
+

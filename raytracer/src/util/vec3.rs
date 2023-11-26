@@ -1,4 +1,5 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use rand::Rng;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
@@ -50,6 +51,25 @@ impl Vec3 {
             y: v1.z * v2.x - v1.x * v2.z,
             z: v1.x * v2.y - v1.y * v2.x,
         }
+    }
+
+    pub fn random_unit() -> Self {
+        let mut rng = rand::thread_rng();
+        let p = Self {
+            x: rng.gen::<f64>() * 2.0 - 1.0,
+            y: rng.gen::<f64>() * 2.0 - 1.0,
+            z: rng.gen::<f64>() * 2.0 - 1.0,
+        };
+        if p.length() >= 1.0 {
+            Self::random_unit()
+        } else {
+            p
+        }
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
     }
 }
 

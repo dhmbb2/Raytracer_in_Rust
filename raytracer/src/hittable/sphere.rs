@@ -2,20 +2,26 @@ use super::HitRecord;
 use super::Hittable;
 use super::Point3;
 use super::Vec3;
+use super::Material;
 
-pub struct Sphere {
+pub struct Sphere<T: Material> {
     center: Point3,
     radius: f64,
+    material: T,
 }
 
-impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
-        Self { center, radius }
+impl<T: Material> Sphere<T> {
+    pub fn new(center: Point3, radius: f64, material: T) -> Self {
+        Self { center, radius, material }
     }
 }
 
-impl Hittable for Sphere {
-    fn hit(&self, ray: &crate::util::ray::Ray, rot: &crate::util::rot::ROT) -> Option<HitRecord> {
+impl<T: Material> Hittable for Sphere<T> {
+    fn hit(
+        &self, 
+        ray: &crate::util::ray::Ray, 
+        rot: &crate::util::rot::ROT
+    ) -> Option<HitRecord> {
         // calculate the distance between ray origin and sphere center
         let v = self.center - ray.ori;
         let mid: f64 = Vec3::dot(&v, &ray.dir);
@@ -35,6 +41,7 @@ impl Hittable for Sphere {
                 t_1,
                 (ray.at(t_1) - self.center) / self.radius,
                 true,
+                &self.material,
             ))
         } else if rot.in_between_open(t_2) {
             Some(HitRecord::new(
@@ -42,6 +49,7 @@ impl Hittable for Sphere {
                 t_2,
                 (ray.at(t_2) - self.center) / self.radius,
                 false,
+                &self.material,
             ))
         } else {
             None
