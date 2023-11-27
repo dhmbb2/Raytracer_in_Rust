@@ -5,7 +5,7 @@ use rand::Rng;
 use crate::hittable::HitRecord;
 use crate::util::const_value;
 use crate::util::ray::Ray;
-use crate::util::rot::ROT;
+use crate::util::interval::Interval;
 use crate::util::vec3::{Color, Point3, Vec3};
 use crate::world::World;
 
@@ -19,6 +19,7 @@ pub struct Camera {
     viewport_width: f64,
     u: Vec3,      // the u axis of the viewport, from left to right
     world: World, // the world of which we capture
+    background_color: Color,
 
     // detailed paras for the camera
     image_height: u32,
@@ -39,6 +40,7 @@ impl Camera {
         viewport_width: f64,
         u: Vec3,
         world: World,
+        background_color: Color,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u32;
         let viewport_height = viewport_width / image_width as f64 * image_height as f64;
@@ -65,6 +67,7 @@ impl Camera {
             viewport_width,
             u,
             world,
+            background_color,
             image_height,
             viewport_height,
             pixel_length,
@@ -91,16 +94,19 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        let mut rot = ROT::new(const_value::BACKGROUND_T, 0.001);
+        let mut rot = Interval::new(const_value::BACKGROUND_T, 0.001);
         for hittable in &self.world.hittables {
             if let Some(record) = hittable.hit(&ray, &rot) {
+                if record.material.is_light() {
+                    return record.material.attenuation();
+                }
                 _hit_record = Some(record);
                 rot.set_tmax(record.t);
             }
         }
 
         match _hit_record {
-            None => Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a,
+            None => self.background_color,
             Some(hit_record) => {
                 let scattered_ray = hit_record.material.scatter(&ray, &hit_record);
                 hit_record.material.attenuation() * self.get_color(scattered_ray, bounce_time)

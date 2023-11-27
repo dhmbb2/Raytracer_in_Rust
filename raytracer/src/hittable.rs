@@ -1,12 +1,15 @@
 pub mod sphere;
 
 use crate::util::ray::Ray;
-use crate::util::rot::ROT;
+use crate::util::interval::Interval;
 use crate::util::vec3::{Point3, Vec3};
 use crate::material::Material;
+use crate::util::bvh::AABB;
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, rot: &ROT) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, rot: &Interval) -> Option<HitRecord>;
+
+    fn bbox(&self) -> AABB;
 }
 #[derive(Clone, Copy)]
 pub struct HitRecord<'a> {
@@ -14,14 +17,14 @@ pub struct HitRecord<'a> {
     pub t: f64,
     pub normal: Vec3, // normal vector of the hit point
     pub is_outward: bool,
-    pub material: &'a dyn Material,
+    pub material: &'a dyn Material
 }
 
 impl<'a> HitRecord<'a> {
     pub fn new(
         point: Point3, 
         t: f64, normal: Vec3, 
-        is_outward: bool, 
+        is_outward: bool,
         material: &'a dyn Material,
     ) -> Self {
         let normal = Self::reset_normal(normal, is_outward);

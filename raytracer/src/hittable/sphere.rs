@@ -3,16 +3,22 @@ use super::Hittable;
 use super::Point3;
 use super::Vec3;
 use super::Material;
+use crate::util::bvh::AABB;
 
 pub struct Sphere<T: Material> {
     center: Point3,
     radius: f64,
     material: T,
+    bbox: AABB,
 }
 
 impl<T: Material> Sphere<T> {
     pub fn new(center: Point3, radius: f64, material: T) -> Self {
-        Self { center, radius, material }
+        let bbox = AABB::new_from_points(
+            center - Vec3::new(radius, radius, radius),
+            center + Vec3::new(radius, radius, radius),
+        );
+        Self { center, radius, material, bbox }
     }
 }
 
@@ -20,7 +26,7 @@ impl<T: Material> Hittable for Sphere<T> {
     fn hit(
         &self, 
         ray: &crate::util::ray::Ray, 
-        rot: &crate::util::rot::ROT
+        rot: &crate::util::interval::Interval
     ) -> Option<HitRecord> {
         // calculate the distance between ray origin and sphere center
         let v = self.center - ray.ori;
@@ -54,5 +60,9 @@ impl<T: Material> Hittable for Sphere<T> {
         } else {
             None
         }
+    }
+
+    fn bbox(&self) -> AABB {
+        self.bbox
     }
 }
