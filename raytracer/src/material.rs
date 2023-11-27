@@ -1,5 +1,6 @@
 pub mod diffusive;
 pub mod metal;
+pub mod dieletric; 
 
 use crate::util::ray::Ray;
 use crate::hittable::HitRecord;

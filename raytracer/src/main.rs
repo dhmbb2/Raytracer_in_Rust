@@ -13,9 +13,9 @@ use camera::Camera;
 use util::vec3::{Point3, Vec3};
 
 fn main() {
-    let center = Point3::new(-5.0, 0.0, 5.0);
+    let center = Point3::new(-2.0, 0.0, 0.0);
     let look_to = Vec3::new(2.0, 0.0, 0.0);
-    let focal_length = 3.0;
+    let focal_length = 1.0;
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let viewport_width = 2.0;
@@ -25,9 +25,10 @@ fn main() {
     let grey_cloth = material::diffusive::Diffusive::new(Vec3::new(0.5, 0.5, 0.5));
     let silver_metal = material::metal::Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3);
     let gold_metal = material::metal::Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0);
+    let glass = material::dieletric::Dieletric::new(Vec3::new(1.0, 1.0, 1.0), 1.5);
     let ball = hittable::sphere::Sphere::new(Vec3::new(2.0, 0.0, 0.0), 1.0, gold_metal.clone());
     let metal_ball = hittable::sphere::Sphere::new(Vec3::new(2.0, -1.5, 0.0), 0.4, silver_metal.clone());
-    let left_ball = hittable::sphere::Sphere::new(Vec3::new(1.5, 2.0, 0.0), 0.5, red_cloth.clone());
+    let left_ball = hittable::sphere::Sphere::new(Vec3::new(0.0, 0.5, 0.3), 0.5, glass.clone());
     let ground_ball = hittable::sphere::Sphere::new(Vec3::new(0.0, 0.0, -100.0), 99.0, grey_cloth.clone());
 
     let world = World {
@@ -46,5 +47,5 @@ fn main() {
     );
 
     let picture: RgbImage = camera.render();
-    picture.save("output/test.png").unwrap();
+    picture.save("output/test2.png").unwrap();
 }

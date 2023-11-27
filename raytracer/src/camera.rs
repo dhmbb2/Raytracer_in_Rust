@@ -91,12 +91,9 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        let mut rot = ROT::new(const_value::BACKGROUND_T, 0.0);
+        let mut rot = ROT::new(const_value::BACKGROUND_T, 0.001);
         for hittable in &self.world.hittables {
             if let Some(record) = hittable.hit(&ray, &rot) {
-                if record.t < 0.001 {
-                    continue;
-                }
                 _hit_record = Some(record);
                 rot.set_tmax(record.t);
             }

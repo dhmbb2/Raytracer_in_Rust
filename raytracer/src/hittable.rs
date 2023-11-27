@@ -24,7 +24,7 @@ impl<'a> HitRecord<'a> {
         is_outward: bool, 
         material: &'a dyn Material,
     ) -> Self {
-        Self::reset_normal(normal, is_outward);
+        let normal = Self::reset_normal(normal, is_outward);
         Self {
             point,
             t,
