@@ -6,10 +6,16 @@ use crate::util::vec3::{Point3, Vec3};
 use crate::material::Material;
 use crate::util::bvh::AABB;
 
+
 pub trait Hittable {
     fn hit(&self, ray: &Ray, rot: &Interval) -> Option<HitRecord>;
 
     fn bbox(&self) -> AABB;
+
+    
+    fn get_center(&self) -> Point3 {
+        Point3::new(0.0, 0.0, 0.0)
+    }
 }
 #[derive(Clone, Copy)]
 pub struct HitRecord<'a> {
@@ -44,5 +50,6 @@ impl<'a> HitRecord<'a> {
             -normal
         }
     }
+
 }
 

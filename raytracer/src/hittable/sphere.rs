@@ -65,4 +65,8 @@ impl<T: Material> Hittable for Sphere<T> {
     fn bbox(&self) -> AABB {
         self.bbox
     }
+
+    fn get_center(&self) -> Point3 {
+        self.center
+    }
 }

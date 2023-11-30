@@ -1,5 +1,6 @@
 use crate::hittable::Hittable;
 
+
 pub struct World {
     pub hittables: Vec<Box<dyn Hittable>>,
 }

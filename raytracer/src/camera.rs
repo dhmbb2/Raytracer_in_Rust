@@ -2,12 +2,13 @@ use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::ProgressBar;
 use rand::Rng;
 
-use crate::hittable::HitRecord;
+use crate::hittable::Hittable;
 use crate::util::const_value;
 use crate::util::ray::Ray;
 use crate::util::interval::Interval;
 use crate::util::vec3::{Color, Point3, Vec3};
 use crate::world::World;
+use crate::util::bvh::BVHNode;
 
 pub struct Camera {
     // user specified parameters
@@ -18,7 +19,7 @@ pub struct Camera {
     image_width: u32,
     viewport_width: f64,
     u: Vec3,      // the u axis of the viewport, from left to right
-    world: World, // the world of which we capture
+    //world: World, // the world of which we capture
     background_color: Color,
 
     // detailed paras for the camera
@@ -28,6 +29,7 @@ pub struct Camera {
     pixel0_loc: Point3,
     du: Vec3, // unit pixel vector of u axis
     dv: Vec3, // unit pixel vector of v axis
+    bvh_tree: BVHNode,
 }
 
 impl Camera {
@@ -57,6 +59,7 @@ impl Camera {
 
         let du = u_unit * pixel_length;
         let dv = v_unit * pixel_length;
+        let bvh_tree = BVHNode::new_from_world(world);
 
         Self {
             center,
@@ -66,7 +69,7 @@ impl Camera {
             image_width,
             viewport_width,
             u,
-            world,
+            // world,
             background_color,
             image_height,
             viewport_height,
@@ -74,6 +77,7 @@ impl Camera {
             pixel0_loc,
             du,
             dv,
+            bvh_tree,
         }
     }
 
@@ -89,25 +93,30 @@ impl Camera {
     pub fn get_color(&self, ray: Ray, bounce_time: u32) -> Color {
         let a = 0.5 * (ray.dir.y + 1.0);
         let bounce_time = bounce_time + 1;
-        let mut _hit_record: Option<HitRecord> = None;
+        // let mut _hit_record: Option<HitRecord> = None;
         if bounce_time > const_value::MAX_BOUNCING_TIMES {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        let mut rot = Interval::new(const_value::BACKGROUND_T, 0.001);
-        for hittable in &self.world.hittables {
-            if let Some(record) = hittable.hit(&ray, &rot) {
-                if record.material.is_light() {
-                    return record.material.attenuation();
-                }
-                _hit_record = Some(record);
-                rot.set_tmax(record.t);
-            }
-        }
+        let rot = Interval::new(0.001, const_value::BACKGROUND_T);
+        // for hittable in &self.world.hittables {
+        //     if let Some(record) = hittable.hit(&ray, &rot) {
+        //         if record.material.is_light() {
+        //             return record.material.attenuation();
+        //         }
+        //         _hit_record = Some(record);
+        //         rot.set_tmax(record.t);
+        //     }
+        // }
 
-        match _hit_record {
+        let hit_record = self.bvh_tree.hit(&ray, &rot);
+
+        match hit_record {
             None => self.background_color,
             Some(hit_record) => {
+                if hit_record.material.is_light() {
+                    return hit_record.material.attenuation();
+                }
                 let scattered_ray = hit_record.material.scatter(&ray, &hit_record);
                 hit_record.material.attenuation() * self.get_color(scattered_ray, bounce_time)
             }

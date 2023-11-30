@@ -13,13 +13,13 @@ use camera::Camera;
 use util::vec3::{Point3, Vec3};
 
 fn main() {
-    let center = Point3::new(5.0, 0.0, 0.0);
-    let look_to = Vec3::new(1.0, 0.0, 0.0);
+    let center = Point3::new(-3.0,0.0, 0.0);
+    let look_to = Vec3::new(0.0, 0.0, 0.0);
     let focal_length = 1.0;
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let viewport_width = 2.0;
-    let u = Vec3::new(0.0, 1.0, 0.0);
+    let u = Vec3::new(0.0, -1.0, 0.0);
     let background_color = Vec3::new(0.0, 0.0, 0.0);
 
     let red_cloth= material::diffusive::Diffusive::new(Vec3::new(0.7, 0.3, 0.3));
@@ -27,7 +27,7 @@ fn main() {
     let silver_metal = material::metal::Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3);
     let gold_metal = material::metal::Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0);
     let glass = material::dieletric::Dieletric::new(Vec3::new(1.0, 1.0, 1.0), 1.5);
-    let light = material::light::Light::new(Vec3::new(4.0, 4.0, 4.0));
+    let light = material::light::Light::new(Vec3::new(3.0, 3.0, 3.0));
     let ball = hittable::sphere::Sphere::new(Vec3::new(2.0, 0.0, 0.0), 1.0, gold_metal.clone());
     let metal_ball = hittable::sphere::Sphere::new(Vec3::new(2.0, -1.5, 0.0), 0.4, silver_metal.clone());
     let glass_ball = hittable::sphere::Sphere::new(Vec3::new(1.0, 1.5, 0.3), 0.5, glass.clone());
