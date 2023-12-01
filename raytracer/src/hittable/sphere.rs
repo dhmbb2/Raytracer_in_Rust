@@ -4,6 +4,8 @@ use super::Point3;
 use super::Vec3;
 use super::Material;
 use crate::util::bvh::AABB;
+use crate::util::interval::Interval;
+use crate::util::ray::Ray;
 
 pub struct Sphere<T: Material> {
     center: Point3,
@@ -25,8 +27,8 @@ impl<T: Material> Sphere<T> {
 impl<T: Material> Hittable for Sphere<T> {
     fn hit(
         &self, 
-        ray: &crate::util::ray::Ray, 
-        rot: &crate::util::interval::Interval
+        ray: &Ray, 
+        rot: &Interval
     ) -> Option<HitRecord> {
         // calculate the distance between ray origin and sphere center
         let v = self.center - ray.ori;
@@ -64,9 +66,5 @@ impl<T: Material> Hittable for Sphere<T> {
 
     fn bbox(&self) -> AABB {
         self.bbox
-    }
-
-    fn get_center(&self) -> Point3 {
-        self.center
     }
 }

@@ -2,6 +2,8 @@
 #![feature(box_syntax)]
 
 use image::RgbImage;
+use std::time::{Duration, Instant};
+
 pub mod camera;
 pub mod hittable;
 pub mod util;
@@ -24,17 +26,18 @@ fn main() {
 
     let red_cloth= material::diffusive::Diffusive::new(Vec3::new(0.7, 0.3, 0.3));
     let grey_cloth = material::diffusive::Diffusive::new(Vec3::new(0.5, 0.5, 0.5));
-    let silver_metal = material::metal::Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.3);
+    let silver_metal = material::metal::Metal::new(Vec3::new(0.8, 0.8, 0.8), 0.1);
     let gold_metal = material::metal::Metal::new(Vec3::new(0.8, 0.6, 0.2), 0.0);
     let glass = material::dieletric::Dieletric::new(Vec3::new(1.0, 1.0, 1.0), 1.5);
     let light = material::light::Light::new(Vec3::new(3.0, 3.0, 3.0));
     let ball = hittable::sphere::Sphere::new(Vec3::new(2.0, 0.0, 0.0), 1.0, gold_metal.clone());
     let metal_ball = hittable::sphere::Sphere::new(Vec3::new(2.0, -1.5, 0.0), 0.4, silver_metal.clone());
     let glass_ball = hittable::sphere::Sphere::new(Vec3::new(1.0, 1.5, 0.3), 0.5, glass.clone());
-    let ground_ball = hittable::sphere::Sphere::new(Vec3::new(0.0, 0.0, -100.0), 99.0, grey_cloth.clone());
+    let ground_ball = hittable::sphere::Sphere::new(Vec3::new(0.0, 0.0, -100.0), 99.0, silver_metal.clone());
     let light_ball = hittable::sphere::Sphere::new(Vec3::new(0.0, -33.0, 33.0), 29.0, light.clone());
-    let light_ball2 =hittable::sphere::Sphere::new(Vec3::new(-1.0, 1.0, -0.5), 0.3, light.clone());
+    let light_quad =hittable::quad::Quad::new(Vec3::new(-1.0, 1.5, 1.5), Vec3::new(2.0, 0.0, 0.0), Vec3::new(0.0, -1.5, 0.5), light.clone());
 
+    let start = Instant::now();
     let world = World {
         hittables: vec![
             Box::new(ball), 
@@ -42,9 +45,11 @@ fn main() {
             Box::new(metal_ball), 
             Box::new(glass_ball),
             Box::new(light_ball),
-            Box::new(light_ball2),
+            Box::new(light_quad),
             ],
     };
+
+    let use_bvh = true;
 
     let camera = Camera::new(
         center,
@@ -56,8 +61,11 @@ fn main() {
         u,
         world,
         background_color,
+        use_bvh,
     );
 
     let picture: RgbImage = camera.render();
+    let duration = start.elapsed();
+    println!("Take {:?} to render!", duration);
     picture.save("output/test3.png").unwrap();
 }

@@ -1,4 +1,5 @@
 pub mod sphere;
+pub mod quad;
 
 use crate::util::ray::Ray;
 use crate::util::interval::Interval;
@@ -11,11 +12,6 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, rot: &Interval) -> Option<HitRecord>;
 
     fn bbox(&self) -> AABB;
-
-    
-    fn get_center(&self) -> Point3 {
-        Point3::new(0.0, 0.0, 0.0)
-    }
 }
 #[derive(Clone, Copy)]
 pub struct HitRecord<'a> {

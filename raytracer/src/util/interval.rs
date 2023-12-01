@@ -1,3 +1,4 @@
+use crate::util::const_value;
 #[derive(Debug, Copy, Clone)]
 pub struct Interval {
     // range of t
@@ -15,6 +16,14 @@ impl Interval {
             tmin: f64::min(op1.tmin, op2.tmin),
             tmax: f64::max(op1.tmax, op2.tmax),
         }
+    }
+
+    pub fn expand(&mut self) {
+        if self.tmax - self.tmin > const_value::EXPAND_LENGTH {
+            return;
+        }
+        self.tmin -= const_value::EXPAND_LENGTH;
+        self.tmax += const_value::EXPAND_LENGTH;
     }
 
     pub fn in_between_closed(&self, t: f64) -> bool {

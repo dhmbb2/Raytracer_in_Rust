@@ -2,34 +2,28 @@ use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::ProgressBar;
 use rand::Rng;
 
-use crate::hittable::Hittable;
+use crate::hittable::{Hittable, HitRecord};
 use crate::util::const_value;
 use crate::util::ray::Ray;
 use crate::util::interval::Interval;
 use crate::util::vec3::{Color, Point3, Vec3};
-use crate::world::World;
+use crate::world::{World, self};
 use crate::util::bvh::BVHNode;
 
 pub struct Camera {
     // user specified parameters
     center: Point3,
-    look_to: Point3,
-    focal_length: f64,
-    aspect_ratio: f64,
-    image_width: u32,
-    viewport_width: f64,
-    u: Vec3,      // the u axis of the viewport, from left to right
-    //world: World, // the world of which we capture
+    world: World, // the world of which we capture
     background_color: Color,
-
-    // detailed paras for the camera
+    image_width: u32,
     image_height: u32,
     viewport_height: f64,
     pixel_length: f64,
     pixel0_loc: Point3,
     du: Vec3, // unit pixel vector of u axis
     dv: Vec3, // unit pixel vector of v axis
-    bvh_tree: BVHNode,
+    use_bvh: bool,
+    bvh_tree: Option<BVHNode>,
 }
 
 impl Camera {
@@ -43,6 +37,7 @@ impl Camera {
         u: Vec3,
         world: World,
         background_color: Color,
+        use_bvh: bool,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u32;
         let viewport_height = viewport_width / image_width as f64 * image_height as f64;
@@ -59,18 +54,18 @@ impl Camera {
 
         let du = u_unit * pixel_length;
         let dv = v_unit * pixel_length;
-        let bvh_tree = BVHNode::new_from_world(world);
+        let mut bvh_tree = None;
+        let mut world = world;
+        if use_bvh {     
+            bvh_tree = Some(BVHNode::new_from_world(world));
+            world = World { hittables: vec![]};
+        }   
 
         Self {
             center,
-            look_to,
-            focal_length,
-            aspect_ratio,
-            image_width,
-            viewport_width,
-            u,
-            // world,
+            world,  
             background_color,
+            image_width,
             image_height,
             viewport_height,
             pixel_length,
@@ -78,6 +73,7 @@ impl Camera {
             du,
             dv,
             bvh_tree,
+            use_bvh,
         }
     }
 
@@ -93,25 +89,29 @@ impl Camera {
     pub fn get_color(&self, ray: Ray, bounce_time: u32) -> Color {
         let a = 0.5 * (ray.dir.y + 1.0);
         let bounce_time = bounce_time + 1;
-        // let mut _hit_record: Option<HitRecord> = None;
+        let mut _hit_record: Option<HitRecord> = None;
         if bounce_time > const_value::MAX_BOUNCING_TIMES {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        let rot = Interval::new(0.001, const_value::BACKGROUND_T);
-        // for hittable in &self.world.hittables {
-        //     if let Some(record) = hittable.hit(&ray, &rot) {
-        //         if record.material.is_light() {
-        //             return record.material.attenuation();
-        //         }
-        //         _hit_record = Some(record);
-        //         rot.set_tmax(record.t);
-        //     }
-        // }
+        let mut rot = Interval::new(0.001, const_value::BACKGROUND_T);
+        if self.use_bvh {
+            if let Some(bvh_tree) = &self.bvh_tree{
+                _hit_record = bvh_tree.hit(&ray, &rot);
+            }  
+        } else {
+            for hittable in &self.world.hittables {
+                if let Some(record) = hittable.hit(&ray, &rot) {
+                    if record.material.is_light() {
+                        return record.material.attenuation();
+                    }
+                    _hit_record = Some(record);
+                    rot.set_tmax(record.t);
+                }
+            }
+        }        
 
-        let hit_record = self.bvh_tree.hit(&ray, &rot);
-
-        match hit_record {
+        match _hit_record {
             None => self.background_color,
             Some(hit_record) => {
                 if hit_record.material.is_light() {

@@ -19,13 +19,21 @@ impl AABB {
         Self { x, y, z }
     }
 
+    pub fn expand(&mut self) {
+        self.x.expand();
+        self.y.expand();
+        self.z.expand();
+    }
+
     // Generate AABB from two diagnal points
     pub fn new_from_points(p1: Point3, p2: Point3) -> Self {
-        Self {
+        let mut bbox = Self {
             x: Interval::new(f64::min(p1.x, p2.x),f64::max(p1.x, p2.x)),
             y: Interval::new(f64::min(p1.y, p2.y),f64::max(p1.y, p2.y)),
             z: Interval::new(f64::min(p1.z, p2.z), f64::max(p1.z, p2.z)),
-        }
+        };
+        bbox.expand();
+        bbox
     }
 
     // Merge two AABBs
