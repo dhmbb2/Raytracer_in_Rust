@@ -1,3 +1,4 @@
+
 use image::{ImageBuffer, Rgb, RgbImage};
 use indicatif::ProgressBar;
 use rand::Rng;
@@ -7,23 +8,22 @@ use crate::util::const_value;
 use crate::util::ray::Ray;
 use crate::util::interval::Interval;
 use crate::util::vec3::{Color, Point3, Vec3};
-use crate::world::{World, self};
+use crate::world::World;
 use crate::util::bvh::BVHNode;
 
 pub struct Camera {
     // user specified parameters
-    center: Point3,
-    world: World, // the world of which we capture
-    background_color: Color,
-    image_width: u32,
-    image_height: u32,
-    viewport_height: f64,
-    pixel_length: f64,
-    pixel0_loc: Point3,
-    du: Vec3, // unit pixel vector of u axis
-    dv: Vec3, // unit pixel vector of v axis
-    use_bvh: bool,
-    bvh_tree: Option<BVHNode>,
+    pub center: Point3,
+    // world: World, // the world of which we capture
+    pub background_color: Color,
+    pub image_width: u32,
+    pub image_height: u32,
+    pub viewport_height: f64,
+    pub pixel_length: f64,
+    pub pixel0_loc: Point3,
+    pub du: Vec3, // unit pixel vector of u axis
+    pub dv: Vec3, // unit pixel vector of v axis
+    pub bvh_tree: Option<BVHNode>,
 }
 
 impl Camera {
@@ -37,7 +37,6 @@ impl Camera {
         u: Vec3,
         world: World,
         background_color: Color,
-        use_bvh: bool,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u32;
         let viewport_height = viewport_width / image_width as f64 * image_height as f64;
@@ -54,16 +53,10 @@ impl Camera {
 
         let du = u_unit * pixel_length;
         let dv = v_unit * pixel_length;
-        let mut bvh_tree = None;
-        let mut world = world;
-        if use_bvh {     
-            bvh_tree = Some(BVHNode::new_from_world(world));
-            world = World { hittables: vec![]};
-        }   
+        let bvh_tree = Some(BVHNode::new_from_world(world));
 
         Self {
             center,
-            world,  
             background_color,
             image_width,
             image_height,
@@ -73,11 +66,18 @@ impl Camera {
             du,
             dv,
             bvh_tree,
-            use_bvh,
         }
     }
 
-    fn linear_to_gamma(&self, color: Color) -> Color {
+    pub fn color2rgb(color: Color) -> Rgb<u8> {
+        Rgb([
+            (color.x * 255.999) as u8,
+            (color.y * 255.999) as u8,
+            (color.z * 255.999) as u8,
+        ])
+    }
+
+    pub fn linear_to_gamma(color: Color) -> Color {
         Color::new(color.x.sqrt(), color.y.sqrt(), color.z.sqrt())
     }
 
@@ -94,22 +94,11 @@ impl Camera {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        let mut rot = Interval::new(0.001, const_value::BACKGROUND_T);
-        if self.use_bvh {
-            if let Some(bvh_tree) = &self.bvh_tree{
-                _hit_record = bvh_tree.hit(&ray, &rot);
-            }  
-        } else {
-            for hittable in &self.world.hittables {
-                if let Some(record) = hittable.hit(&ray, &rot) {
-                    if record.material.is_light() {
-                        return record.material.attenuation();
-                    }
-                    _hit_record = Some(record);
-                    rot.set_tmax(record.t);
-                }
-            }
-        }        
+        let rot = Interval::new(0.001, const_value::BACKGROUND_T);
+
+        if let Some(bvh_tree) = &self.bvh_tree{
+            _hit_record = bvh_tree.hit(&ray, &rot);   
+        }
 
         match _hit_record {
             None => self.background_color,
@@ -146,7 +135,7 @@ impl Camera {
             for i in 0..self.image_width {
                 _pixel = self.pixel0_loc + self.du * i as f64 + self.dv * j as f64;
                 let color = self.get_pixel_color(_pixel);
-                let color = self.linear_to_gamma(color);
+                let color = Self::linear_to_gamma(color);
                 result.put_pixel(
                     i,
                     j,
@@ -162,4 +151,5 @@ impl Camera {
         bar.finish();
         result
     }
+
 }

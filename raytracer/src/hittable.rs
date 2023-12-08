@@ -8,7 +8,7 @@ use crate::material::Material;
 use crate::util::bvh::AABB;
 
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, rot: &Interval) -> Option<HitRecord>;
 
     fn bbox(&self) -> AABB;
@@ -21,6 +21,7 @@ pub struct HitRecord<'a> {
     pub is_outward: bool,
     pub material: &'a dyn Material
 }
+
 
 impl<'a> HitRecord<'a> {
     pub fn new(
